@@ -1,0 +1,69 @@
+#!/bin/bash
+################################################################################
+#
+# Screens:
+# xrandr script to help with screen configurations
+# targeted for use with my i3 configs
+#
+################################################################################
+
+# screen variables -- configure as needed
+built_in="eDP-1"
+ext_1="HDMI-3"
+ext_2="HDMI-1"
+
+# Flags:
+BUILT_IN="--built-in"     # laptop screen
+DUAL_EXTERNAL="--d-ext"   # two external monitors, no built in display
+SINGLE_EXTERNAL="--s-ext" # single external monitor, no build in display
+
+
+screen_check () {
+  local screen
+  screen=${1}
+
+  if [[ -z $(xrandr -q | grep ${screen}\ con) ]]; then
+    printf "Outputs not detected.\n"
+    exit 0
+  fi
+}
+
+configure_screens () {
+  local flag
+  flag=${1}
+
+  case ${flag} in
+    ${BUILT_IN})
+      printf "Built in dipslay\n"
+
+      screen_check ${built_in}
+      xrandr --output ${built_in} --auto \
+             --output ${ext_1} --off \
+             --output ${ext_2} --off
+    ;;
+    ${DUAL_EXTERNAL})
+      printf "dual external display\n"
+
+      screen_check ${ext_1}
+      screen_check ${ext_2}
+
+      xrandr --output ${built_in} --off \
+             --output ${ext_1} --auto --left-of ${ext_2} \
+             --output ${ext_2} --auto
+    ;;
+    ${SINGLE_EXTERNAL})
+      printf "single external display\n"
+
+      screen_check ${ext_1}
+      xrandr --output ${built_in} --off \
+             --output ${ext_1} --auto \
+             --output ${ext_2} --off
+    ;;
+    *)
+      # TODO: print usage
+      printf "Flag not recongnized\n"
+    ;;
+  esac
+}
+
+configure_screens ${1}
